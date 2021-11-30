@@ -26,6 +26,18 @@ const ACTION_PLUS = 'plus';
 const ACTION_RESULT = 'result';
 const EMPTY_OP = [0];
 
+const isEmptyOp = (operand) => {
+  return operand.length === 1 && operand[0] === 0;
+};
+
+const calcResult = (leftOp, input) => {
+  const left = parseInt(leftOp.join(''), 10);
+  const right = parseInt(input.join(''), 10);
+  const result = left + right;
+
+  return `${result}`.split('').map((strNum) => parseInt(strNum, 10));
+};
+
 const Calculator = () => {
   const [leftOp, setLeftOp] = useState(EMPTY_OP);
   const [lastActionPressed, setLastActionPressed] = useState(null);
@@ -41,18 +53,29 @@ const Calculator = () => {
     },
     [input, lastActionPressed]
   );
-  const handlePlus = useCallback(() => {
-    setLeftOp(input.length > 0 ? input : EMPTY_OP);
-    setLastActionPressed(ACTION_PLUS);
-  }, [input]);
   const handleResult = useCallback(() => {
-    const left = parseInt(leftOp.join(''), 10);
-    const right = parseInt(input.join(''), 10);
-    const result = left + right;
-    setInput(`${result}`.split('').map((strNum) => parseInt(strNum, 10)));
+    if (lastActionPressed === ACTION_RESULT) {
+      return;
+    }
+
+    setInput(calcResult(leftOp, input));
     setLeftOp(EMPTY_OP);
     setLastActionPressed(ACTION_RESULT);
-  }, [leftOp, input]);
+  }, [leftOp, input, lastActionPressed]);
+  const handlePlus = useCallback(() => {
+    if (lastActionPressed === ACTION_PLUS) {
+      return;
+    }
+
+    if (isEmptyOp(leftOp)) {
+      setLeftOp(input.length > 0 ? input : EMPTY_OP);
+    } else {
+      const res = calcResult(leftOp, input);
+      setLeftOp(res);
+      setInput(res);
+    }
+    setLastActionPressed(ACTION_PLUS);
+  }, [input, leftOp, lastActionPressed]);
   const handleClear = useCallback(() => {
     setInput([]);
     setLeftOp(EMPTY_OP);
